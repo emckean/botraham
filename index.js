@@ -26,56 +26,44 @@ Array.prototype.pickRemove = function() {
   return this.splice(index,1)[0];
 };
 
-// ### Screen Scraping
 
-// We pass this function a category code (see `tweet` below). We grab the Google News
-// topics page for that category and load the html into `cheerio`. We parse the page for
-// text from the links in the left-hand bar, which becomes a list of topics.
-// For example, if we passed it 'e' for Entertainment, we might get: Miley Cyrus, Oscars,
-// Kanye West, and so on.
-function getTopics(category) {
-  var topics = [];
-  var dfd = new _.Deferred();
-  request(baseUrl + '/news/section?ned=us&topic=' + category, function (error, response, body) {
-    if (!error && response.statusCode === 200) {
-      var $ = cheerio.load(body);
-      $('.topic').each(function() {
-        var topic = {};
-        topic.name = this.text();
-        topic.url = baseUrl + this.children().first().attr('href');
-        topics.push(topic);
-      });
-      dfd.resolve(topics);
-    }
-    else {
-      dfd.reject();
-    }
-  });
-  // The function returns a promise, and the promise resolves to the array of topics.
-  return dfd.promise();
-}
-
-// We pass this function a URL for a specific topic (for example:
-// [Miley Cyrus](https://news.google.com/news/section?pz=1&cf=all&ned=us&hl=en&q=Miley%20Cyrus).
-// We then get the page, feed the HTML to `cheerio`, and then pick a random headline
-// from the page.
 function getHeadline(url) {
   var dfd = new _.Deferred();
   request(url, function (error, response, body) {
     if (!error && response.statusCode === 200) {
       var $ = cheerio.load(body);
-      var headlines = $('.titletext');
-      // `pick()` doesn't work here because `headlines` isn't an array, so instead we use `cheerio`'s `eq` which
-      // give us a matched element at a given index, and pass it a random number.
-      var headline = headlines.eq(Math.floor(Math.random()*headlines.length)).text();
-      dfd.resolve(headline);
-    }
+      var headlines = [];
+      var tempHeadline;
+      var tempURL;
+      var tempObject;
+      var tempVerb;
+      var lcVerb;
+      var verbs = [" Gets ", " Issues ", " Calls ", " Sues ", " Detects ", " Overtakes ", " Says ", " Debuts ", " Halts ", " Yields ", " Opens ", " Leaves ", " Smashes ", " Returns ", " Turns ", " Ready ", " Could ", " Honoured ", " Finally ", " Outdoes ", " Withdraws ", " Flips ", " Was ", " Reveals ", " Breaks ", " Wins ", " Faces ", " Defeats ", " Announces ", " Responds ", " Urges ", " Gives ", " Holds ", " Will "];    
+      $('h2 a').each( function(){
+        console.log("got here!")
+        tempHeadline = $(this).text();
+        tempURL = $(this).attr('url');        
+        var myHeadline;
+        myHeadline = tempHeadline.toLowerCase();
+        if(verbs.some(function(verb) {
+          tempVerb = verb;
+          lcVerb = verb.toLowerCase();
+          return myHeadline.indexOf(lcVerb) > -1;          
+        })) tempObject = {"headline": tempHeadline, "url": tempURL, "verb": tempVerb};
+      });
+      headlines.push(tempObject);
+      console.log(headlines);
+      console.log("ready to resolve");
+      dfd.resolve(headlines);
+  }
     else {
       dfd.reject();
     }
   });
   return dfd.promise();
 }
+
+
 
 // ### Tweeting
 
@@ -97,16 +85,33 @@ function getHeadline(url) {
 // If we're unable to find a headline where we can easily find/replace, we simply try again.
 function tweet() {
   var categoryCodes = ['w', 'n', 'b', 'tc', 'e', 's'];
-  getTopics(categoryCodes.pickRemove()).then(function(topics) {
-    var topic = topics.pickRemove();
-    console.log(topic);
-    getHeadline(topic.url).then(function(headline) {
-      if (headline.indexOf(topic.name) > -1) {
-        getTopics(categoryCodes.pickRemove()).then(function(topics) {
-          var newTopic = topics.pick();
-          var newHeadline = headline.replace(topic.name, "John Cusack");
+  var category = categoryCodes.pickRemove();
+  var foundVerb;
+  var foundHeadline;
+  var foundURL;
+  console.log(category);
+  var headlineURL = baseUrl + '/news/section?ned=us&topic=' + category;
+  console.log(headlineURL);    
+    getHeadline(headlineURL).then(function(headlines) {
+      console.log("here we are");
+      foundVerb = headlines[0].verb;
+      console.log(foundVerb);
+      foundHeadline = headlines[0].headline;
+      console.log("this is the found headline: " + foundHeadline);
+      foundURL = headlines[0].url;
+      console.log(foundURL);
+      if (foundHeadline.indexOf(foundVerb) > -1) {
+          console.log("hey got here ok?")
+          var newHeadline;
+          console.log("this is the new headline " + newHeadline);
+          var headlineArray = [];
+          headlineArray = foundHeadline.split(foundVerb);
+          console.log("this is the " + headlineArray);
+          var newHeadline = "John Cusack" + foundVerb + headlineArray[1];
           console.log(newHeadline);
-          T.post('statuses/update', { status: newHeadline }, function(err, reply) {
+          var statusUpdate = newHeadline + " " + foundURL;
+          console.log(statusUpdate);
+          T.post('statuses/update', { status: statusUpdate }, function(err, reply) {
             if (err) {
               console.log('error:', err);
             }
@@ -114,20 +119,41 @@ function tweet() {
               console.log('reply:', reply);
             }
           });
-        });
+        // });
+      }
+      else if (foundHeadline.indexOf(foundVerb.toLowerCase()) > -1) {
+          console.log("hey got here ok?")
+          var newHeadline;
+          console.log("this is the new headline " + newHeadline);
+          var headlineArray = [];
+          headlineArray = foundHeadline.split(foundVerb.toLowerCase());
+          console.log("this is the " + headlineArray);
+          var newHeadline = "John Cusack" + foundVerb.toLowerCase() + headlineArray[1];
+          console.log(newHeadline);
+          var statusUpdate = newHeadline + " " + foundURL;
+          console.log(statusUpdate);
+          T.post('statuses/update', { status: statusUpdate }, function(err, reply) {
+            if (err) {
+              console.log('error:', err);
+            }
+            else {
+              console.log('reply:', reply);
+            }
+          });
+        // });
       }
       else {
         console.log('couldn\'t find a headline match, trying again...');
         tweet();
       }
     });
-  });
+  // });
 }
 
 // Tweets once on initialization.
 tweet();
 
-// Tweets every 15 minutes.
+// Tweets every 6.66 hours.
 setInterval(function () {
   try {
     tweet();
