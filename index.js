@@ -104,7 +104,7 @@ function tweet() {
       if (headline.indexOf(topic.name) > -1) {
         getTopics(categoryCodes.pickRemove()).then(function(topics) {
           var newTopic = topics.pick();
-          var newHeadline = headline.replace(topic.name, newTopic.name);
+          var newHeadline = headline.replace(topic.name, "John Cusack");
           console.log(newHeadline);
           T.post('statuses/update', { status: newHeadline }, function(err, reply) {
             if (err) {
@@ -135,4 +135,4 @@ setInterval(function () {
   catch (e) {
     console.log(e);
   }
-}, 1000 * 60 * 60);
+}, 24000000);
