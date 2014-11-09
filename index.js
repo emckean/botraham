@@ -23,9 +23,12 @@ function tweet() {
   .end(stopAfter100Char)
   .process(function(err, s) {
     console.log(s);
-    var newS = s.replace("\"", "", "gi");
-    newS = newS + ".";
-    T.post('statuses/update', { status: newS }, function(err, reply) {
+    var re = /(\W| the| and| of| and| be| upon| on| to)\./gi;
+    var sentenceS = s + ".";
+    var noQuoteS = sentenceS.replace("(\")", "", "gi");
+    newS = noQuoteS.replace(re, ".");
+    var statusS = newS.replace(re, ".");
+    T.post('statuses/update', { status: statusS }, function(err, reply) {
       if (err) {
         console.log('error:', err);
       }
