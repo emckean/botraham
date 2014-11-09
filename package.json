@@ -19,8 +19,8 @@
     "node": "0.10.17"
   },
   "dependencies": {
-    "request": "~2.27.0",
     "cheerio": "~0.12.1",
+    "request": "~2.27.0",
     "twit": "~1.1.9",
     "underscore.deferred": "~0.4.0"
   },
