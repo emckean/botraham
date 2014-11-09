@@ -1,25 +1,26 @@
 {
-  "name": "twoheadlines",
+  "name": "botrahamlincoln",
   "version": "0.0.1",
-  "description": "Confused about the news.",
+  "description": "The best president tweets.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:dariusk/twoheadlines.git"
+    "url": "git@github.com:emckean/botraham.git"
   },
-  "author": "Darius Kazemi",
+  "author": "Erin McKean",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/dariusk/twoheadlines/issues"
+    "url": "https://github.com/emckean/botraham/issues"
   },
   "engines": {
     "node": "0.10.17"
   },
   "dependencies": {
     "cheerio": "~0.12.1",
+    "markovchain": "0.0.4",
     "request": "~2.27.0",
     "twit": "~1.1.9",
     "underscore.deferred": "~0.4.0"
